@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roni & Cesi - Nuestro Tiempo</title>
+    <title>Para Cesi ❤️</title>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -25,15 +25,54 @@
             text-align: center;
         }
 
+        /* Capa de mensajes iniciales */
+        #overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-dark);
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            cursor: pointer;
+            transition: opacity 1s ease;
+        }
+
+        #message-text {
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.8rem;
+            line-height: 1.5;
+            max-width: 600px;
+            animation: fadeIn 0.8s ease;
+        }
+
+        .tap-hint {
+            position: absolute;
+            bottom: 20%;
+            font-size: 0.8rem;
+            opacity: 0.5;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Contenedor Principal (Oculto al inicio) */
         .container {
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 1s ease;
             z-index: 10;
             background: rgba(255, 255, 255, 0.05);
             padding: 2rem;
             border-radius: 20px;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
             max-width: 90%;
+        }
+
+        .container.visible {
+            opacity: 1;
+            transform: scale(1);
         }
 
         h1 {
@@ -43,97 +82,104 @@
             color: var(--primary-color);
         }
 
-        .names {
-            font-size: 1.5rem;
-            font-weight: 600;
-            letter-spacing: 2px;
-            margin-bottom: 2rem;
-        }
+        .names { font-size: 1.2rem; font-weight: 600; margin-bottom: 2rem; opacity: 0.8; }
 
         .counter-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 15px;
+        }
+
+        @media (min-width: 480px) {
+            .counter-grid { grid-template-columns: repeat(4, 1fr); }
         }
 
         .time-box {
             background: rgba(255, 77, 109, 0.1);
             padding: 15px;
             border-radius: 10px;
-            min-width: 70px;
         }
 
-        .number {
-            display: block;
-            font-size: 2rem;
-            font-weight: 600;
-        }
+        .number { display: block; font-size: 2rem; font-weight: 600; color: var(--primary-color); }
+        .label { font-size: 0.7rem; text-transform: uppercase; opacity: 0.7; }
 
-        .label {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            opacity: 0.7;
-        }
-
-        /* Corazones animados */
         .heart {
             position: absolute;
             color: var(--primary-color);
-            font-size: 20px;
-            user-select: none;
             pointer-events: none;
             animation: float 5s linear forwards;
+            z-index: 1;
         }
 
         @keyframes float {
             0% { transform: translateY(100vh) rotate(0deg); opacity: 1; }
             100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
         }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
 
-    <div class="container">
+    <div id="overlay">
+        <div id="message-text">Cesi, tengo algo que decirte...</div>
+        <div class="tap-hint">(Toca la pantalla para continuar)</div>
+    </div>
+
+    <div class="container" id="main-content">
         <h1>Roni & Cesi</h1>
         <div class="names">NUESTRO TIEMPO JUNTOS</div>
         
         <div class="counter-grid">
-            <div class="time-box">
-                <span class="number" id="days">00</span>
-                <span class="label">Días</span>
-            </div>
-            <div class="time-box">
-                <span class="number" id="hours">00</span>
-                <span class="label">Horas</span>
-            </div>
-            <div class="time-box">
-                <span class="number" id="minutes">00</span>
-                <span class="label">Minutos</span>
-            </div>
-            <div class="time-box">
-                <span class="number" id="seconds">00</span>
-                <span class="label">Segundos</span>
-            </div>
+            <div class="time-box"><span class="number" id="days">00</span><span class="label">Días</span></div>
+            <div class="time-box"><span class="number" id="hours">00</span><span class="label">Horas</span></div>
+            <div class="time-box"><span class="number" id="minutes">00</span><span class="label">Minutos</span></div>
+            <div class="time-box"><span class="number" id="seconds">00</span><span class="label">Segundos</span></div>
         </div>
     </div>
 
     <script>
-        // Fecha de inicio: 07/07/2022
+        const messages = [
+            "No sé cuánto tiempo de vida me quede, no sé cuánto tiempo le quede al mundo, y hay mucho sobre el tiempo que desconozco...",
+            "Lo que sé, gracias a ti, es que sea la cantidad que sea, deseo estar a tu lado eternamente.",
+            "Por favor, que nuestro reloj siga contando nuestro tiempo juntos sin que nada lo detenga...",
+            "TE AMO ❤️"
+        ];
+
+        let currentMsg = 0;
+        const overlay = document.getElementById('overlay');
+        const msgText = document.getElementById('message-text');
+        const mainContent = document.getElementById('main-content');
+
+        overlay.addEventListener('click', () => {
+            if (currentMsg < messages.length) {
+                msgText.style.animation = 'none';
+                setTimeout(() => {
+                    msgText.innerText = messages[currentMsg];
+                    msgText.style.animation = 'fadeIn 0.8s ease';
+                    currentMsg++;
+                }, 10);
+            } else {
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    mainContent.classList.add('visible');
+                }, 1000);
+            }
+        });
+
+        // Lógica del Contador
         const startDate = new Date('2022-07-07T00:00:00').getTime();
 
         function updateCounter() {
-            const now = new Date().getTime();
-            const diff = now - startDate;
-
-            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const s = Math.floor((diff % (1000 * 60)) / 1000);
-
-            document.getElementById('days').innerText = d;
-            document.getElementById('hours').innerText = h < 10 ? '0' + h : h;
-            document.getElementById('minutes').innerText = m < 10 ? '0' + m : m;
-            document.getElementById('seconds').innerText = s < 10 ? '0' + s : s;
+            const diff = new Date().getTime() - startDate;
+            document.getElementById('days').innerText = Math.floor(diff / 86400000);
+            document.getElementById('hours').innerText = String(Math.floor((diff % 86400000) / 3600000)).padStart(2, '0');
+            document.getElementById('minutes').innerText = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+            document.getElementById('seconds').innerText = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
         }
 
         function createHeart() {
@@ -141,15 +187,13 @@
             heart.classList.add('heart');
             heart.innerHTML = '❤️';
             heart.style.left = Math.random() * 100 + 'vw';
-            heart.style.animationDuration = Math.random() * 3 + 2 + 's';
-            heart.style.fontSize = Math.random() * 10 + 15 + 'px';
+            heart.style.animationDuration = (Math.random() * 3 + 2) + 's';
             document.body.appendChild(heart);
-
-            setTimeout(() => { heart.remove(); }, 5000);
+            setTimeout(() => heart.remove(), 5000);
         }
 
         setInterval(updateCounter, 1000);
-        setInterval(createHeart, 300);
+        setInterval(createHeart, 400);
         updateCounter();
     </script>
 </body>
